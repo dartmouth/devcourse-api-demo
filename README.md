@@ -20,6 +20,7 @@ A tiny FastAPI project that showcases the **Router → Controller → Service �
 - Python **3.10** or newer (the code uses the `|` union syntax).
 - `git` (to clone the repo).
 - A terminal / command prompt.
+- UV installed
 
 ---
 
