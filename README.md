@@ -1,7 +1,7 @@
 # Campus‑Coffee Demo API
 A tiny FastAPI project that showcases the **Router → Controller → Service → Model** architecture pattern, using SQLite + SQLModel.
 
-> **Purpose:**  
+> **Purpose:**
 > Use this repo for the *Session 1* presentation (walk‑through of the code) and then let participants build a different API (**Dartmouth Places**) in *Session 2* using the same structure.
 
 ---
@@ -31,16 +31,9 @@ A tiny FastAPI project that showcases the **Router → Controller → Service �
 git clone https://github.com/your‑org/devcourse-api-demo.git
 cd devcourse-api-demo
 
-# 2️ (Recommended) Create a virtual environment
-python -m venv venv
-# Windows
-.\venv\Scripts\activate
-# macOS / Linux
-source venv/bin/activate
+# 2️ Initialize the environment and install dependencies
+uv sync
 
-# 3️ Install dependencies
-pip install -r requirements.txt
-
-# 4 Run the server
-uvicorn app.main:app --reload
+# 3 Run the server
+uv run fastapi dev
 ```
