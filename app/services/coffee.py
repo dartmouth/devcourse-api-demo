@@ -4,7 +4,8 @@ All interactions with the DB happen here. Controllers stay thin – they only
 translate HTTP details (status codes, request bodies) into service calls.
 """
 
-from typing import List, Optional
+from datetime import datetime
+from typing import List, Optional, Tuple
 
 from sqlmodel import Session, select
 
@@ -40,6 +41,47 @@ class CoffeeService:
         session.delete(coffee)
         session.commit()
         return True
+
+    # ------------------------------------------------------------------
+    # Business logic that needs no database at all.
+    #
+    # Not every service method has to read or write a row. This one takes
+    # (optional) input, applies a few rules, and returns an answer – no
+    # `Session` parameter in sight.
+    # ------------------------------------------------------------------
+    _RECOMMENDATIONS: dict = {
+        "morning": ("Espresso", "A strong start to kick off the day."),
+        "afternoon": ("Latte", "Something smoother to get through the slump."),
+        "evening": (
+            "Decaf Americano",
+            "Still coffee-flavored, but won't wreck your sleep.",
+        ),
+        "night": ("Herbal Tea", "Maybe skip the coffee at this hour."),
+    }
+
+    @staticmethod
+    def _time_of_day(hour: int) -> str:
+        if 5 <= hour < 12:
+            return "morning"
+        if 12 <= hour < 17:
+            return "afternoon"
+        if 17 <= hour < 21:
+            return "evening"
+        return "night"
+
+    @classmethod
+    def recommend(cls, time_of_day: Optional[str] = None) -> Tuple[str, str, str]:
+        """Return (time_of_day, recommendation, reason) for the given time.
+
+        If no `time_of_day` is supplied, it's derived from the current
+        server time. This is pure business logic – deterministic given its
+        inputs, with nothing to persist or fetch.
+        """
+        period = (time_of_day or "").strip().lower()
+        if period not in cls._RECOMMENDATIONS:
+            period = cls._time_of_day(datetime.now().hour)
+        drink, reason = cls._RECOMMENDATIONS[period]
+        return period, drink, reason
 
     # ------------------------------------------------------------------
     # PATCH endpoint (commented out – enable when you have time)

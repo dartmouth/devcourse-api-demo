@@ -4,10 +4,12 @@ Each function returns a Pydantic schema (or raises an HTTPException) – the
 router then handles turning that into JSON + proper status code.
 """
 
+from typing import Optional
+
 from fastapi import HTTPException
 from sqlmodel import Session
 
-from app.schemas.coffee import CoffeeCreate, CoffeeRead
+from app.schemas.coffee import CoffeeCreate, CoffeeRead, CoffeeRecommendation
 from app.services.coffee import CoffeeService
 
 
@@ -33,6 +35,12 @@ def delete_coffee(coffee_id: int, session: Session) -> dict:
     if not success:
         raise HTTPException(status_code=404, detail="Coffee not found")
     return {"detail": "Deleted successfully"}
+
+
+def recommend_coffee(time_of_day: Optional[str] = None) -> CoffeeRecommendation:
+    """No `session` parameter here – this doesn't touch the database at all."""
+    period, drink, reason = CoffeeService.recommend(time_of_day)
+    return CoffeeRecommendation(time_of_day=period, recommendation=drink, reason=reason)
 
 # ----------------------------------------------------------------------
 # PATCH controller (commented out – enable when you have time)

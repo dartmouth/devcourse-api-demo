@@ -26,6 +26,13 @@ class CoffeeRead(CoffeeBase):
         from_attributes = True
 
 
+class CoffeeRecommendation(BaseModel):
+    """Response for GET /coffee/recommendation – no DB row behind this."""
+    time_of_day: str
+    recommendation: str
+    reason: str
+
+
 class CoffeeUpdate(BaseModel):
     """
     Payload for PATCH /coffee/{id} – all fields optional.
