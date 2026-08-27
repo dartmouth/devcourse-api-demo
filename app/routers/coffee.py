@@ -1,74 +1,110 @@
-"""FastAPI Router – wires HTTP verbs & paths to controller functions."""
+"""FastAPI Router – wires HTTP verbs & paths to service functions.
 
-from typing import Optional
+All FastAPI‑specific concerns (dependency injection, HTTPException handling)
+live here, while the pure business logic stays in `app.services.coffee`.
+"""
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session
 
 from app.database import get_session
-from app.controllers.coffee import (
-    create_coffee,
-    delete_coffee,
-    get_coffee,
-    list_coffees,
-    recommend_coffee,
-)
-from app.schemas.coffee import CoffeeCreate, CoffeeRead, CoffeeRecommendation
+from app.schemas.coffee import CoffeeCreate, CoffeeRead, CoffeeUpdate
+from app.services.coffee import CoffeeService
 
 router = APIRouter()
 
 
+# ----------------------------------------------------------------------
+# CREATE
+# ----------------------------------------------------------------------
 @router.post(
     "/",
     response_model=CoffeeRead,
     status_code=status.HTTP_201_CREATED,
     summary="Add a new coffee drink",
 )
-def create(payload: CoffeeCreate, session: Session = Depends(get_session)):
-    return create_coffee(payload, session)
-
-
-@router.get("/", response_model=list[CoffeeRead], summary="List all coffee drinks")
-def read_all(session: Session = Depends(get_session)):
-    return list_coffees(session)
-
-
-@router.get(
-    "/recommendation",
-    response_model=CoffeeRecommendation,
-    summary="Get a coffee recommendation for the time of day",
-)
-def recommendation(time_of_day: Optional[str] = None):
-    """Pure business logic – no database session involved.
-
-    Not every endpoint needs to touch the database: this one computes an
-    answer from its input (or the server clock) and a set of rules living
-    entirely in the service layer. Try `?time_of_day=evening`.
+def create(
+    payload: CoffeeCreate,
+    session: Session = Depends(get_session),
+):
     """
-    return recommend_coffee(time_of_day)
+    FastAPI injects a DB session, forwards the payload to the service,
+    and returns the created object (including the auto‑generated `id`).
+    """
+    coffee = CoffeeService.create(session, payload)
+    return CoffeeRead.model_validate(coffee)
 
 
-# NOTE: this route MUST be declared before `/{coffee_id}` below, otherwise
-# FastAPI would treat "recommendation" as a coffee_id and 422 on the int
-# conversion.
-@router.get("/{coffee_id}", response_model=CoffeeRead, summary="Get a coffee drink by its ID")
-def read_one(coffee_id: int, session: Session = Depends(get_session)):
-    return get_coffee(coffee_id, session)
+# ----------------------------------------------------------------------
+# READ – list all coffees
+# ----------------------------------------------------------------------
+@router.get(
+    "/",
+    response_model=list[CoffeeRead],
+    summary="List all coffee drinks",
+)
+def read_all(
+    session: Session = Depends(get_session),
+):
+    coffees = CoffeeService.list_all(session)
+    return [CoffeeRead.model_validate(c) for c in coffees]
 
 
-@router.delete("/{coffee_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete a coffee drink")
-def delete(coffee_id: int, session: Session = Depends(get_session)):
-    delete_coffee(coffee_id, session)
+# ----------------------------------------------------------------------
+# READ – single coffee by ID
+# ----------------------------------------------------------------------
+@router.get(
+    "/{coffee_id}",
+    response_model=CoffeeRead,
+    summary="Get a coffee drink by its ID",
+)
+def read_one(
+    coffee_id: int,
+    session: Session = Depends(get_session),
+):
+    coffee = CoffeeService.get_by_id(session, coffee_id)
+    if coffee is None:
+        raise HTTPException(status_code=404, detail="Coffee not found")
+    return CoffeeRead.model_validate(coffee)
+
+
+# ----------------------------------------------------------------------
+# DELETE – remove a coffee
+# ----------------------------------------------------------------------
+@router.delete(
+    "/{coffee_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a coffee drink",
+)
+def delete(
+    coffee_id: int,
+    session: Session = Depends(get_session),
+):
+    """
+    Calls the service to delete the record.
+    Returns 204 No Content on success; 404 if the record does not exist.
+    """
+    success = CoffeeService.delete(session, coffee_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Coffee not found")
+    # FastAPI interprets a `None` return with a 204 status as an empty body.
     return None
 
 
-# ------------------------------------------------------------------
-# PATCH – comment/uncomment together with the service & controller
-# ------------------------------------------------------------------
+# ----------------------------------------------------------------------
+# PATCH – partially update a coffee (commented out, enable when time permits)
+# ----------------------------------------------------------------------
 # @router.patch(
 #     "/{coffee_id}",
-#     response_model=CoffeeCreate,
+#     response_model=CoffeeRead,
 #     summary="Partially update a coffee drink",
 # )
-# def patch(coffee_id: int, payload: CoffeeUpdate):
-#     return update_coffee(coffee_id, payload)
+# def patch(
+#     coffee_id: int,
+#     payload: CoffeeUpdate,
+#     session: Session = Depends(get_session),
+# ):
+#     coffee = CoffeeService.update(session, coffee_id, payload)
+#     if coffee is None:
+#         raise HTTPException(status_code=404, detail="Coffee not found")
+#     return CoffeeRead.model_validate(coffee)
