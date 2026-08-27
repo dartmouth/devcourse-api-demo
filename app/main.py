@@ -31,22 +31,5 @@ app = FastAPI(
 # ----------------------------------------------------------------------
 # Public (unauthenticated) routes
 # ----------------------------------------------------------------------
-app.include_router(health.router)          # /health
+app.include_router(health.router)      
 app.include_router(coffee.router, prefix="/coffee", tags=["coffee"])
-
-# ----------------------------------------------------------------------
-# Authentication (commented out – enable when you have time)
-# ----------------------------------------------------------------------
-# from fastapi import Depends
-# from fastapi.security import HTTPBearer
-# from app.dependencies import get_current_user
-#
-# security = HTTPBearer()
-#
-# # Example: protect ALL coffee routes with a bearer token
-# # app.include_router(
-# #     coffee.router,
-# #     prefix="/coffee",
-# #     tags=["coffee"],
-# #     dependencies=[Depends(security), Depends(get_current_user)],
-# # )
