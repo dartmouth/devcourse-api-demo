@@ -9,10 +9,6 @@ A tiny FastAPI project that showcases the **Router → Controller → Service �
 ## 📚 Table of Contents
 - [Prerequisites](#prerequisites)
 - [Setup & Installation](#setup--installation)
-- [Running the Server](#running-the-server)
-- [Testing the Endpoints (CLI)](#testing-the-endpoints-cli)
-- [Optional: Enable Authentication & PATCH](#optional-enable-authentication--patch)
-- [Project Structure Explained](#project-structure-explained)
 
 ---
 
