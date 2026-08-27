@@ -24,7 +24,7 @@ A tiny FastAPI project that showcases the **Router → Controller → Service �
 
 ```bash
 # 1️ Clone the repo (or create the folder structure manually)
-git clone https://github.com/your‑org/devcourse-api-demo.git
+git clone -b api-skeleton git@github.com:dartmouth/devcourse-api-demo.git
 cd devcourse-api-demo
 
 # 2️ Initialize the environment and install dependencies
