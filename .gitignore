@@ -16,3 +16,5 @@ coffee.db
 # VS Code / PyCharm metadata (optional, keep if you use them)
 .vscode/
 .idea/
+
+.DS_Store
