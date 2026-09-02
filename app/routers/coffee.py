@@ -6,3 +6,5 @@ from fastapi import APIRouter, Depends, status
 from sqlmodel import Session
 
 from app.database import get_session
+
+router = APIRouter()
